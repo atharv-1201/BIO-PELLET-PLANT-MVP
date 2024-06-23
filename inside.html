@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio-Pellet Plants Near You</title>
+    <link rel="stylesheet" href="inside.css">
+</head>
+
+<body>
+    <h1>Bio-Pellet Plants Near You</h1>
+    <!-- <img class="wave" src="bioplant1.jpg"> -->
+    <form id="plantForm">
+        
+        <label for="name">Your Name:</label>
+        <input type="text" id="name" required>
+        <br>
+        <label for="cropname">Crop Name:</label>
+        <input type="text" id="cropname" required>
+        <br>
+        <label for="quantity">Crop Quantity:</label>
+        <input type="number" id="quantity" required>
+        <br>
+        <label for="pincode">Pincode:</label>
+        <input type="number" id="pincode" required>
+        <br>
+        <button type="button" onclick="findNearestPlant()">Find Nearest Plant</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        function findNearestPlant() {
+            // Get user input
+            var pincode = document.getElementById("pincode").value;
+
+            // Fetch data from the JSON files
+            Promise.all([
+                fetch('data.json').then(response => response.json()),
+                fetch('data2.json').then(response => response.json())
+            ])
+                .then(([data1, data2]) => {
+                    // Clear previous results
+                    document.getElementById("result").innerHTML = "";
+
+                    // Find the location from data2 that matches the input pincode
+                    const [latitude, longitude] = data2[pincode] || [];
+                    if (latitude && longitude) {
+                        // Display the data from data1 for the matched location
+                        const nearestPlant = data1.find(plant =>
+                            plant.latitude === latitude && plant.longitude === longitude
+                        );
+
+                        if (nearestPlant) {
+                            var plantInfo = `<p><strong>${nearestPlant.name}</strong><br>Rating: ${nearestPlant.rating}<br>Location: (${nearestPlant.latitude}, ${nearestPlant.longitude})</p>`;
+                            document.getElementById("result").innerHTML = plantInfo;
+                        } else {
+                            document.getElementById("result").innerHTML = "<p>No matching plant found.</p>";
+                        }
+                    } else {
+                        document.getElementById("result").innerHTML = "<p>Invalid pincode or no matching location found.</p>";
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+    </script>
+</body>
+
+</html>
